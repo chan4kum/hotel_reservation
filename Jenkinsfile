@@ -35,21 +35,24 @@ pipeline{
             steps{
                 withCredentials([file(credentialsId: 'gcp-key' , variable : 'GOOGLE_APPLICATION_CREDENTIALS')]){
                     script{
-                        echo 'Building and Pushing Docker Image to GCR.............'
+                        echo 'Building and Pushing Docker Image to Artifact Registry...'
                         sh '''
                         export PATH=$PATH:${GCLOUD_PATH}
 
-
+                        # Activate service account
                         gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 
+                        # Set the project
                         gcloud config set project ${GCP_PROJECT}
 
-                        gcloud auth configure-docker --quiet
+                        # Configure Docker to authenticate with Artifact Registry
+                        gcloud auth configure-docker us-docker.pkg.dev --quiet
 
-                        docker build -t gcr.io/${GCP_PROJECT}/ml-project:latest .
+                        # Build and tag the Docker image
+                        docker build -t us-docker.pkg.dev/${GCP_PROJECT}/gcr/ml-project:latest .
 
-                        docker push gcr.io/${GCP_PROJECT}/ml-project:latest 
-
+                        # Push the Docker image to Artifact Registry
+                        docker push us-docker.pkg.dev/${GCP_PROJECT}/gcr/ml-project:latest
                         '''
                     }
                 }

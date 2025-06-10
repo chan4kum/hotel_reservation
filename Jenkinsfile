@@ -4,8 +4,12 @@ pipeline{
     environment {
         VENV_DIR = 'venv'
         GCP_PROJECT = "mlops-460914"
+        // Ensure GCLOUD_PATH points to the directory containing gcloud executable
         GCLOUD_PATH = "/var/jenkins_home/google-cloud-sdk/bin"
+        // Define the full Artifact Registry image path as an environment variable
+        DOCKER_IMAGE_NAME = "us-docker.pkg.dev/${GCP_PROJECT}/gcr/ml-project:latest"
     }
+
 
     stages{
         stage('Cloning Github repo to Jenkins'){
@@ -37,22 +41,36 @@ pipeline{
                     script{
                         echo 'Building and Pushing Docker Image to Artifact Registry...'
                         sh '''
+                        # Add gcloud to PATH for the current shell
                         export PATH=$PATH:${GCLOUD_PATH}
 
-                        # Activate service account
-                        gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+                        # Check gcloud version (good for debugging path issues)
+                        gcloud --version
 
-                        # Set the project
+                        # Explicitly set the service account and project for this operation
+                        gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} --project=${GCP_PROJECT}
+
+                        # Ensure the project is set for subsequent gcloud commands
                         gcloud config set project ${GCP_PROJECT}
 
-                        # Configure Docker to authenticate with Artifact Registry
+                        # IMPORTANT: Configure Docker to use gcloud as a credential helper.
+                        # This command writes to ~/.docker/config.json of the user running this process.
+                        # Using --quiet to suppress interactive prompts.
                         gcloud auth configure-docker us-docker.pkg.dev --quiet
 
-                        # Build and tag the Docker image
-                        docker build -t us-docker.pkg.dev/${GCP_PROJECT}/gcr/ml-project:latest .
+                        # Verify Docker login status (optional, but helpful for debugging)
+                        # This might show "Login Succeeded" if configured correctly.
+                        # You might need to install 'docker-credential-gcloud' for this specific check to work cleanly.
+                        # If you see "login succeeded" it means creds are being picked up.
+                        # docker login us-docker.pkg.dev
+
+                        # Build the Docker image with the fully qualified tag
+                        echo "Building Docker image: ${DOCKER_IMAGE_NAME}"
+                        docker build -t ${DOCKER_IMAGE_NAME} .
 
                         # Push the Docker image to Artifact Registry
-                        docker push us-docker.pkg.dev/${GCP_PROJECT}/gcr/ml-project:latest
+                        echo "Pushing Docker image: ${DOCKER_IMAGE_NAME}"
+                        docker push ${DOCKER_IMAGE_NAME}
                         '''
                     }
                 }

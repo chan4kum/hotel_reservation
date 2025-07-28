@@ -1,50 +1,42 @@
 pipeline {
   agent any
 
+  options {
+    skipDefaultCheckout()
+  }
+
+  tools {
+    git 'Default'           // matches the Git installation name in Global Tool Config
+  }
+
   environment {
-    // Virtualenv
-    VENV_DIR  = 'venv'
-
-    // GCP Settings
-    GCP_PROJECT    = 'project-mlops-467111'
-    REGION         = 'us-central1'
-    AREGION        = 'us-docker.pkg.dev'
-    REPO           = "${GCP_PROJECT}/ml-repo"
-    TAG            = "${env.BUILD_NUMBER}"
-    IMAGE_URI      = "${AREGION}/${REPO}/ml-project:${TAG}"
-
-    // gcloud path if needed
-    GCLOUD_PATH    = '/var/jenkins_home/google-cloud-sdk/bin'
+    VENV_DIR    = 'venv'
+    GCP_PROJECT = 'project-mlops-467111'
+    GCLOUD_PATH = '/var/jenkins_home/google-cloud-sdk/bin'
   }
 
   stages {
 
-    stage('Checkout') {
+    stage('Checkout Source') {
       steps {
-        echo 'Cloning source...'
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: '*/main']],
-          userRemoteConfigs: [[
-            url: 'https://github.com/chan4kum/hotel_reservation.git',
-            credentialsId: 'github-token'
-          ]]
-        ])
+        git(
+          url: 'https://github.com/chan4kum/hotel_reservation.git',
+          branch: 'main',
+          credentialsId: 'github-token'
+        )
       }
     }
 
-    stage('Test') {
+    stage('Setup & Test') {
       steps {
-        echo 'Running tests...'
         sh '''
           set -eux
           python -m venv ${VENV_DIR}
           . ${VENV_DIR}/bin/activate
           pip install --upgrade pip
           pip install -e .
-          pytest --junitxml=reports/results.xml
+          pytest --maxfail=1 --disable-warnings -q
         '''
-        junit 'reports/results.xml'
       }
     }
 

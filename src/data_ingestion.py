@@ -23,7 +23,7 @@ class DataIngestion:
     def download_csv_from_gcp(self):
         try:
             client = storage.Client()
-            bucket = client.bucket(self.bucket_name)
+            bucket = client.bucket(self.bucket_name, user_project="project-mlops-467111")
             blob = bucket.blob(self.file_name)
 
             blob.download_to_filename(RAW_FILE_PATH)
@@ -31,7 +31,7 @@ class DataIngestion:
             logger.info(f"CSV file is sucesfully downloaded to {RAW_FILE_PATH}")
 
         except Exception as e:
-            logger.error("Error while downloading the csv file")
+            logger.error("Error while downloading the csv file" ,{e})
             raise CustomException("Failed to downlaod csv file ", e)
         
     def split_data(self):

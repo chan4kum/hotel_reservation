@@ -1,6 +1,6 @@
 data_ingestion:
   bucket_name: "my_hotel_reservation_bucket"
-  bucket_file_name: "my_hotel_reservation_bucket/Hotel_Reservations.csv"
+  bucket_file_name: "Hotel_Reservations.csv"
   train_ratio: 0.8
 
 data_processing:

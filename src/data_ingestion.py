@@ -22,17 +22,25 @@ class DataIngestion:
 
     def download_csv_from_gcp(self):
         try:
+            # First check if file exists locally
+            if os.path.exists("Hotel_Reservations.csv"):
+                import shutil
+                shutil.copy("Hotel_Reservations.csv", RAW_FILE_PATH)
+                logger.info(f"Using local CSV file, copied to {RAW_FILE_PATH}")
+                return
+            
+            # Try to download from GCP
             client = storage.Client()
             bucket = client.bucket(self.bucket_name, user_project="project-mlops-467111")
             blob = bucket.blob(self.file_name)
 
             blob.download_to_filename(RAW_FILE_PATH)
 
-            logger.info(f"CSV file is sucesfully downloaded to {RAW_FILE_PATH}")
+            logger.info(f"CSV file is successfully downloaded to {RAW_FILE_PATH}")
 
         except Exception as e:
-            logger.error("Error while downloading the csv file" ,{e})
-            raise CustomException("Failed to downlaod csv file ", e)
+            logger.error(f"Error while downloading the csv file: {e}")
+            raise CustomException("Failed to download csv file", e)
         
     def split_data(self):
         try:

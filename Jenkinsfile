@@ -3,11 +3,11 @@ pipeline{
 
     environment {
         VENV_DIR = 'venv'
-        GCP_PROJECT = "mlops-460914"
-        // Ensure GCLOUD_PATH points to the directory containing gcloud executable
-        GCLOUD_PATH = "/var/jenkins_home/google-cloud-sdk/bin"
-        // Define the full Artifact Registry image path as an environment variable
-        DOCKER_IMAGE_NAME = "us-docker.pkg.dev/${GCP_PROJECT}/gcr/ml-project:latest"
+        // GCP_PROJECT = "mlops-460914"
+        // // Ensure GCLOUD_PATH points to the directory containing gcloud executable
+        // GCLOUD_PATH = "/var/jenkins_home/google-cloud-sdk/bin"
+        // // Define the full Artifact Registry image path as an environment variable
+        // DOCKER_IMAGE_NAME = "us-docker.pkg.dev/${GCP_PROJECT}/gcr/ml-project:latest"
     }
 
 
@@ -21,19 +21,19 @@ pipeline{
             }
         }
 
-        // stage('Setting up our Virtual Environment and Installing dependancies'){
-        //     steps{
-        //         script{
-        //             echo 'Setting up our Virtual Environment and Installing dependancies............'
-        //             sh '''
-        //             python -m venv ${VENV_DIR}
-        //             . ${VENV_DIR}/bin/activate
-        //             pip install --upgrade pip
-        //             pip install -e .
-        //             '''
-        //         }
-        //     }
-        // }
+        stage('Setting up our Virtual Environment and Installing dependancies'){
+            steps{
+                script{
+                    echo 'Setting up our Virtual Environment and Installing dependancies............'
+                    sh '''
+                    python -m venv ${VENV_DIR}
+                    . ${VENV_DIR}/bin/activate
+                    pip install --upgrade pip
+                    pip install -e .
+                    '''
+                }
+            }
+        }
 
         // stage('Building and Pushing Docker Image to GCR'){
         //     steps{

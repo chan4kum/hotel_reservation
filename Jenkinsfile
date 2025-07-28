@@ -62,7 +62,9 @@ pipeline{
 
                         docker build -t gcr.io/${GCP_PROJECT}/ml-project:latest .
 
-                        docker push -t gcr.io/${GCP_PROJECT}/ml-project:latest .
+                        # Correct
+                        docker push gcr.io/project-mlops-467111/ml-project:latest
+
 
                         # Verify Docker login status (optional, but helpful for debugging)
                         # This might show "Login Succeeded" if configured correctly.
